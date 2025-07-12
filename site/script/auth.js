@@ -1,123 +1,60 @@
 const BASE_URL = 'https://api.andre.ca';
 
-async function call(ressource, method, auth, obj) {
+async function call(ressource, method, obj, log) {
+    let json = null
     let params = {
         method: method,
-        headers: buildHeaders(auth)
+        headers: buildHeaders()
     };
     if (obj != null) {
-        if (await isIdentified()) {
-            obj.connectedUser = await getConnectedUser();
-        }
         params.body = JSON.stringify(obj);
     }
-    const response = await fetch(`${BASE_URL}/${ressource}`, params);
-    const json = await response.json();
+
+    try {
+        const response = await fetch(`${BASE_URL}/${ressource}`, params);
+        const json = await response.json();
+        return json
+    } catch (error) {
+        console.log(log);
+        log.level = 'kill'
+        await sendLog(log)
+    }
+
+
     return json;
 }
 
-async function buildHeaders(auth) {
+function buildHeaders() {
     let headers = {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
     };
-    if (auth) {
-        if (! await isIdentified()) {
-            throw new Error('Empty token while required...');
-        }
-        headers['Authorization'] = `Bearer ${await getConnectedUser().token}`;
-    }
-
     return headers;
 }
 
-export async function getConnectedUser() {
-    return await JSON.parse(localStorage.getItem('user'));
-}
 
-export async function isIdentified() {
-    return await getConnectedUser() != null;
-}
-
-export async function subscribe(user) {
-    let result = false;
-    const subscribeJson = await call('subscribe', 'POST', false, user);
-    if (subscribeJson.errorCode == 0) {
-        result = subscribeJson.subscribed;
-
-        const event = new CustomEvent('auth-subscribed', { });
-        this.dispatchEvent(event);
-    }
-
-    return result;
-}
-
-export async function login(user) {
-    let result = false;
-    const loginJson = await call('login', 'POST', false, user);
-
-    if (loginJson.errorCode == 0) {
-        result = true;
-        localStorage.setItem('user', JSON.stringify(loginJson.user));
-    }
-
-    return result;
-}
-
-export async function logout() {
-    let result = false;
-    const logoutJson = await call('logout', 'POST', true);
-
-    if (logoutJson.errorCode == 0) {
-        result = logoutJson.revoked;
-        localStorage.clear();
-
-        const event = new CustomEvent('auth-logedout', { });
-        dispatchEvent(event);
-    }
-
-    return result;
-}
-
-export async function getAllPosts() {
-    let result = [];
-    const allPostsJson = await call('posts', 'GET', true);
-
-    if (allPostsJson.errorCode == 0) {
-        result = allPostsJson.posts;
-    }
-
-    return result;
-}
-
-export async function getNextPost(postId) {
-    let result = null;
-    let resource = 'posts/next';
-    let currentIds = JSON.parse(localStorage.getItem('ids'));
-    const nextPostJson = await call(resource, 'GET', true, {ids: currentIds, nbRequested: 3});
-
-    if (nextPostJson.errorCode == 0) {
-        result = nextPostJson.posts;
-        const ids = result.map((item) => item.id);
-        currentIds.push(...ids);
-        localStorage.setItem('ids', JSON.stringify(currentIds));
-    }
-
-    return result;
-}
-
-
-export async function writeLog(log) {
-    let result = null
-    console.log(log);
-    await call('logs', 'POST', false, log);
+export async function sendLog(log) {
+    // console.table('frontend sendLog ', log);
+    await call('logs', 'POST', log, log);
 }
 
 export async function getLogs() {
-    const data = await call('logs', 'GET', false);
-    // console.log(data);
+    const data = await call('logs', 'GET');
     if (data.errorCode == 0) {
         return data.logs
     }
-    return result;
+    return null;
+}
+
+export async function testCall(body, log) {
+    let bogus
+    if (body.action === 'failed') {
+        bogus = await call('logs/bogus', 'POST', body, log);
+    } else {
+        bogus = await call('logs/test', 'POST', body, log);
+    }
+    log.level = 'INFO'
+    await sendLog(log)
+    return 'bogus'
+
 }

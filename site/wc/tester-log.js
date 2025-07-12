@@ -1,4 +1,4 @@
-import { writeLog } from '../script/auth.js'
+import { sendLog, testCall } from '../script/auth.js'
 
 class TesterLogElement extends HTMLElement {
     constructor() {
@@ -20,6 +20,8 @@ class TesterLogElement extends HTMLElement {
             <div class="tester-div">
                 <button id="error">Error</button>
                 <button id="noError">No Error</button>
+                <button id="bogus1">charge laser</button>
+                <button id="bogus2">fire laser</button>
             </div>
         `.trim();
     }
@@ -39,29 +41,28 @@ class TesterLogElement extends HTMLElement {
 
         btns.forEach(btn => {
             btn.addEventListener('click', async e => {
-                let result = null
+                
                 if (e.target.id === 'error') {
-                    await writeLog(LOG)
-                    // console.log(await testCall());
-                    const event = new CustomEvent('test-error-click', {
-                        detail: {
-                            result: "stuff"
-                        },
-                        bubbles: true,
-                        composed: true
-                    });
-                    this.dispatchEvent(event);
-
+                    try {
+                        foo = bar
+                    } catch (error) {
+                        console.error('error in tester-log');
+                        await sendLog({
+                            "level": "WARN",
+                            "description": "frontend",
+                            "module": "cc",
+                            "file": "tester-log",
+                            "line": 27
+                        });
+                    }
                 } else if (e.target.id === 'noError') {
-                    const event = new CustomEvent('test-noError-click', {
-                        detail: {
-                            result: await writeLog(true)
-                        },
-                        bubbles: true,
-                        composed: true
-                    });
-                    this.dispatchEvent(event);
+                    await sendLog(LOG);
+                } else if (e.target.id === 'bogus1') {
+                    e.target.innerHTML = await testCall({}, LOG)
+                } else if (e.target.id === 'bogus2') {
+                    e.target.innerHTML = await testCall({ "action": "failed" }, LOG)
                 }
+
             })
         })
     }
