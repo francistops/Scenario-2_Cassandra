@@ -1,69 +1,80 @@
-import { login } from '../script/auth.js'
-import { parseFormToObject } from '../script/utilform.js'
-import { hashPassword } from '../script/passwordElement.js'
+import { getLogs } from '../script/auth.js'
 
-/**
- * Changez ce code pour répondre à votre besoins
- */
-class AuthLoginElement extends HTMLElement {
+class DisplayLogElement extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
-
         this.shadowRoot.innerHTML = `
             <style>
-            @import "https://unpkg.com/open-props";
-                p {
-                    font-size: 100px;
-                    font-weight: bold;
-                    font-style: italic;
+                table, thead, tbody, tr, th, td {
+                    color: #fff;
+                    border: 1px solid salmon;
                 }
             </style>
-            <form id="action-login" method="POST">
-                <div class="item-data">
-                    <label for="user-email">Courriel</label>
-                    <input id="user-email" name="user[email]">
-                </div>
-                <div class="item-data">
-                    <label for="user-password">Mot de passe</label>
-                    <textarea id="user-password" name="password"></textarea>
-                </div>
-                <button id="cancel">Annuler</button>
-                <button id="action">Se connecter</button>
-                <div>Pas de compte : <a href="#subscribe">se créer un compte</a></div>
-            </form>
+            <button id="getLogs">get logs</button>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Level</th>
+                        <th>File</th>
+                        <th>Line</th>
+                        <th>Module</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody id="bodyData">
+                </tbody>
+            </table>
         `.trim();
     }
- 
+
     async connectedCallback() {
-        const form = this.shadowRoot.getElementById('action-login');
+        const btn = this.shadowRoot.getElementById('getLogs');
+        btn.addEventListener('click', async e => {
+            this.shadowRoot.querySelector('tbody').innerHTML = ''
 
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-        });
-
-        const actionBtn = this.shadowRoot.getElementById('action');
-        actionBtn.addEventListener('click', async (e) => {
-            const user = parseFormToObject(form);
-            user.user.passHash = await hashPassword(user.password);
-            delete user.password;
-
-            const result = await login(user);
-            
-            const event = new CustomEvent('logging-in', {
-                detail: {
-                    result: result
-                },
-                bubbles: true,
-                composed: true
-            });
-
-            this.dispatchEvent(event);
+            const logs = await getLogs();
+            for (let i = 0; i < logs.length; i++) {
+                const log = logs[i]
+                this.addData(log)
+            }
         });
     }
+
+    addData(log) {
+        const tb = this.shadowRoot.querySelector('tbody');
+        const trTag = document.createElement('tr');
+        trTag.id = log.id;
+
+        const tdTimestamp = document.createElement('td');
+        tdTimestamp.innerHTML = log.timestamp;
+
+        const tdLevel = document.createElement('td');
+        tdLevel.innerHTML = log.level;
+
+        const tdFile = document.createElement('td');
+        tdFile.innerHTML = log.file;
+
+        const tdLine = document.createElement('td');
+        tdLine.innerHTML = log.line;
+
+        const tdMod = document.createElement('td');
+        tdMod.innerHTML = log.module;
+
+        const tdDesc = document.createElement('td');
+        tdDesc.innerHTML = log.description;
+
+        trTag.appendChild(tdTimestamp);
+        trTag.appendChild(tdLevel);
+        trTag.appendChild(tdFile);
+        trTag.appendChild(tdLine);
+        trTag.appendChild(tdMod);
+        trTag.appendChild(tdDesc);
+
+        tb.appendChild(trTag);
+    }
 }
-  
-/**
- * Changez le nom de manière adéquate
- */
-customElements.define('auth-login', AuthLoginElement);
+
+
+customElements.define('display-log', DisplayLogElement);

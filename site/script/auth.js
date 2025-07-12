@@ -107,13 +107,17 @@ export async function getNextPost(postId) {
 }
 
 
-export async function testCall(bool) {
-    let result = bool;
-    const testResult = await call('posts', 'GET', false);
+export async function writeLog(log) {
+    let result = null
+    console.log(log);
+    await call('logs', 'POST', false, log);
+}
 
-    if (testResult.errorCode == 0) {
-        result = allPostsJson.posts;
+export async function getLogs() {
+    const data = await call('logs', 'GET', false);
+    // console.log(data);
+    if (data.errorCode == 0) {
+        return data.logs
     }
-
     return result;
 }

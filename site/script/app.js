@@ -1,5 +1,3 @@
-import { isIdentified, logout, getConnectedUser } from "./auth.js";
-
 function fillMain(element) {
     const main = document.querySelector('main');
         main.childNodes.forEach((item, index) => {

@@ -1,6 +1,7 @@
 body {
   margin: 0;
-  background-color: #f2f2f2;
+  background-color: #000000;
+  color: #ffffff;
 }
 
 html {
@@ -15,17 +16,9 @@ main * {
   display: none;
 }
 
-.boom:hover {
-  background-color: bisque;
-  border: 1px solid darkgray;
-}
 
-.boom {
-  background-color: hotpink;
-  border: 1px solid yellow;
-}
 
-main, aside {
+main {
   display: inline-block;
   vertical-align: top;
   min-height: 250px;
