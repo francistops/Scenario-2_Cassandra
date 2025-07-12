@@ -15,7 +15,7 @@ async function call(ressource, method, obj, log) {
         const json = await response.json();
         return json
     } catch (error) {
-        console.log(log);
+        // console.log(log);
         log.level = 'kill'
         await sendLog(log)
     }
@@ -50,11 +50,10 @@ export async function testCall(body, log) {
     let bogus
     if (body.action === 'failed') {
         bogus = await call('logs/bogus', 'POST', body, log);
+        await sendLog(log)
+        return 'boom'
     } else {
         bogus = await call('logs/test', 'POST', body, log);
+        return 'laser prime!'
     }
-    log.level = 'INFO'
-    await sendLog(log)
-    return 'bogus'
-
 }

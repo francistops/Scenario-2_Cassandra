@@ -18,10 +18,12 @@ class TesterLogElement extends HTMLElement {
                 }
             </style>
             <div class="tester-div">
-                <button id="error">Error</button>
-                <button id="noError">No Error</button>
-                <button id="bogus1">charge laser</button>
-                <button id="bogus2">fire laser</button>
+                
+                <button id="bogus1">working call</button>
+                <button id="bogus2">error call</button>
+                <button id="error">direct call Error debug</button>
+                <button id="noError">direct No Error but logged debug</button>
+
             </div>
         `.trim();
     }
@@ -46,7 +48,7 @@ class TesterLogElement extends HTMLElement {
                     try {
                         foo = bar
                     } catch (error) {
-                        console.error('error in tester-log');
+                        console.error('exepected error in tester-log');
                         await sendLog({
                             "level": "WARN",
                             "description": "frontend",
